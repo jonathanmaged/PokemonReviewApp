@@ -10,6 +10,7 @@ public class Review
 
     //(review - reviewer) many to one relationship
     public Reviewer Reviewer { get; set; }
+    public int Rating { get; set; }
 
 }
 
