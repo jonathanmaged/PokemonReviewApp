@@ -9,6 +9,7 @@ public class Owner
     public string Gym { get; set; }
     public ICollection<PokemonOwner> OwnerPockemons { get; set; }
     //owner to country many to one relationship
+    public int CountryId { get; set; }
     public Country Country { get; set; }
 }
 

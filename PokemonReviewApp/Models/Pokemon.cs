@@ -11,6 +11,7 @@ public class Pokemon
     //(pokemon - Review) many to one relationship 
     public ICollection<Review> Reviews { get; set; }
     //(pokemon - category) many to one relationship
+    public int CategoryId { get; set; }
     public Category Category { get; set; }
 
 }
