@@ -2,8 +2,10 @@
 using Microsoft.AspNetCore.Mvc;
 using PokemonReviewApp.Dto;
 using PokemonReviewApp.Interfaces.Repository;
+using PokemonReviewApp.Interfaces.Services;
 using PokemonReviewApp.Models;
 using PokemonReviewApp.Repositories;
+using PokemonReviewApp.Services;
 
 namespace PokemonReviewApp.Controllers
 {
@@ -11,21 +13,17 @@ namespace PokemonReviewApp.Controllers
     [ApiController]
     public class PokemonsController : Controller
     {
-        private readonly IPokemonRepository _pokemonRepository;
-        private readonly IMapper _mapper;
+        private readonly IPokemonService pokemonService;
 
-        public PokemonsController(IPokemonRepository pokemonRepository, IMapper mapper)
+        public PokemonsController(IPokemonService pokemonService)
         {
-            _pokemonRepository = pokemonRepository;
-            _mapper = mapper;
+            this.pokemonService = pokemonService;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetPokemons()
         {
-            var pokemons = await _pokemonRepository.GetPokemonsAsync();
-            var pokemonsDto = _mapper.Map<ICollection<PokemonDto>>(pokemons);
-          
+            var pokemonsDto = await pokemonService.GetPokemonsAsync();    
             return Ok(pokemonsDto);
         }
 
@@ -36,12 +34,11 @@ namespace PokemonReviewApp.Controllers
             if(!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var pokemon =await _pokemonRepository.GetPokemonByIdAsync(pokeId);
+            var pokemonDto = await pokemonService.GetPokemonByIdAsync(pokeId);
 
-            if (pokemon == null)
+            if (pokemonDto == null)
                 return NotFound();
 
-            var pokemonDto = _mapper.Map<PokemonDto>(pokemon);
             return Ok(pokemonDto);
 
         }
@@ -51,36 +48,24 @@ namespace PokemonReviewApp.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            //if (!_pokemonRepository.PokemonExists(pokeId))
-            //    return NotFound();
-
-            var rating =await _pokemonRepository.GetPokemonRatingAsync(pokeId);
+            var rating =await pokemonService.GetPokemonRatingAsync(pokeId);
             return Ok(rating);
         }
-        [HttpPost]
-        public async Task<IActionResult> CreatePokemon([FromBody] PokemonDto pokemonDto)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+        //[HttpPost]
+        //public async Task<IActionResult> CreatePokemon([FromBody] PokemonDto pokemonDto)
+        //{
+        //    if (!ModelState.IsValid)
+        //        return BadRequest(ModelState);
 
-            var pokemon = await _pokemonRepository.GetPokemonByNameAsync(pokemonDto.Name);
+        //    var result = await pokemonService.CreatePokemonAsync(pokemonDto);
 
-            if (pokemon != null)
-            {
-                ModelState.AddModelError("", "Pokemon Already Exists");
-                return StatusCode(422, ModelState);
-            }
-            pokemon = _mapper.Map<Pokemon>(pokemonDto);
-
-            var saved = await _pokemonRepository.CreatePokemonAsync(pokemon);
-            if (!saved)
-            {
-                ModelState.AddModelError("", "Something Went wrong when saving in the database");
-                return StatusCode(500, ModelState);
-            }
-            return Ok("Created Succesfully");
-
-        }
+        //    return result.Match<IActionResult>(
+        //            owner => Ok("Created successfully"),
+        //            conflictError => StatusCode(422, conflictError.Message),
+        //            databaseError => StatusCode(500, databaseError.Message)
+        //            );
+        
+        //}
 
     }
 }

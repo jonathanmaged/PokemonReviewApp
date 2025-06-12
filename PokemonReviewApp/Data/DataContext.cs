@@ -28,7 +28,7 @@ namespace PokemonReviewApp.Data
 
             modelBuilder.Entity<PokemonOwner>()
                 .HasOne(po => po.Owner)
-                .WithMany(o => o.OwnerPockemons )
+                .WithMany(o => o.OwnerPokemons )
                 .HasForeignKey(po => po.OwnerId);
         }
     }

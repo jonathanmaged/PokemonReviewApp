@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Diagnostics.Metrics;
+using AutoMapper;
 using OneOf;
 using PokemonReviewApp.Dto;
 using PokemonReviewApp.Errors;
@@ -11,22 +12,49 @@ namespace PokemonReviewApp.Services
 {
     public class OwnerService : IOwnerService
     {
-        private readonly IOwnerRepository _ownerRepository;
+        private readonly IUnitOfWork unitOfWork;
         private readonly ICountryService countryService;
-        private readonly ICountryRepository countryRepository;
         private readonly IMapper _mapper;
 
-        public OwnerService(IOwnerRepository ownerRepository,ICountryService countryService,ICountryRepository countryRepository, IMapper mapper)
+        public OwnerService(IUnitOfWork unitOfWork, ICountryService countryService, IMapper mapper)
         {
-            _ownerRepository = ownerRepository;
+            this.unitOfWork = unitOfWork;
             this.countryService = countryService;
-            this.countryRepository = countryRepository;
             _mapper = mapper;
+        }
+
+        public async Task<ICollection<OwnerDto>> GetOwnersAsync()
+        {
+            var owners = await unitOfWork.OwnerRepository.GetAll();
+            var ownersDto = _mapper.Map<ICollection<OwnerDto>>(owners);
+            return ownersDto;
+        }
+
+        public async Task<OwnerDto?> GetOwnerByIdAsync(int id)
+        {
+            var owner = await unitOfWork.OwnerRepository.GetById(id);
+            var ownerDto = _mapper.Map<OwnerDto>(owner);
+            return ownerDto;
+        }
+
+        public async Task<ICollection<OwnerDto>> GetOwnersOfAPokemonAsync(int pokeId)
+        {
+            var owners = await unitOfWork.OwnerRepository.GetOwnersOfAPokemonAsync(pokeId);
+            var ownersDto = _mapper.Map<ICollection<OwnerDto>>(owners);
+            return ownersDto;
+
+        }
+
+        public async Task<ICollection<PokemonDto>> GetPokemonsByOwnerAsync(int ownerId)
+        {
+            var pokemons = await unitOfWork.OwnerRepository.GetPokemonsByOwnerAsync(ownerId);
+            var pokemonsDto = _mapper.Map<ICollection<PokemonDto>>(pokemons);
+            return pokemonsDto;
         }
 
         public async Task<OneOf<Owner, ConflictError, DatabaseError>> CreateOwnerAsync(OwnerDto ownerDto, string countryName)
         {
-            var owner = await _ownerRepository.GetOwnerByNameAsync(ownerDto.LastName);
+            var owner = await unitOfWork.OwnerRepository.GetOwnerByNameAsync(ownerDto.LastName);
 
             if (owner != null)
             {
@@ -47,16 +75,16 @@ namespace PokemonReviewApp.Services
                 owner.Country = result.AsT0;
             }else if (result.IsT1) 
             {
-                owner.Country = await countryRepository.GetCountryByNameAsync(countryName); 
+                owner.Country = await unitOfWork.CountryRepository.GetCountryByNameAsync(countryName); 
 
             }
+            unitOfWork.OwnerRepository.Add(owner);
 
-            var saved = await _ownerRepository.CreateOwnerAsync(owner);
-            if (!saved)
+            var saved = await unitOfWork.Save();
+            if (saved == 0)
                 return new DatabaseError("Something Went wrong when saving in the database");
             return owner;
 
         }
-
     }
 }

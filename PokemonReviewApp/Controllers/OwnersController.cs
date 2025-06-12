@@ -13,36 +13,30 @@ namespace PokemonReviewApp.Controllers
     [ApiController]
     public class OwnersController:Controller
     {
-        private readonly IOwnerRepository _ownerRepository;
         private readonly IOwnerService ownerService;
-        private readonly IMapper _mapper;
 
-        public OwnersController(IOwnerRepository ownerRepository,IOwnerService ownerService ,IMapper mapper)
+        public OwnersController(IOwnerService ownerService )
         {
-            _ownerRepository = ownerRepository;
             this.ownerService = ownerService;
-            _mapper = mapper;
         }
         [HttpGet]
-        public IActionResult GetOwners() 
+        public async  Task<IActionResult> GetOwners() 
         {
-            var owners = _ownerRepository.GetOwnersAsync();
-            var ownersDto = _mapper.Map<List<OwnerDto>>(owners);
+            var ownersDto = await ownerService.GetOwnersAsync();
             return Ok(ownersDto);
         }
 
         [HttpGet("{ownerId}")]
-        public IActionResult GetOwner(int ownerId)
+        public async Task<IActionResult> GetOwner(int ownerId)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var owner = _ownerRepository.GetOwnerByIdAsync(ownerId);
+            var ownerDto = await ownerService.GetOwnerByIdAsync(ownerId);
 
-            if(owner == null)
+            if(ownerDto == null)
                 return NotFound();
 
-            var ownerDto = _mapper.Map<OwnerDto>(owner);
 
             return Ok(ownerDto);
         }
@@ -53,8 +47,7 @@ namespace PokemonReviewApp.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var owners = await _ownerRepository.GetOwnersOfAPokemonAsync(pokeId);
-            var ownersDto = _mapper.Map<List<OwnerDto>>(owners);
+            var ownersDto = await ownerService.GetOwnersOfAPokemonAsync(pokeId);
             return Ok(ownersDto);
 
         }
@@ -65,8 +58,7 @@ namespace PokemonReviewApp.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var pokemons = await _ownerRepository.GetPokemonsByOwnerAsync(ownerId);
-            var pokemonsDto = _mapper.Map<List<PokemonDto>>(pokemons);
+            var pokemonsDto = await ownerService.GetPokemonsByOwnerAsync(ownerId);
             return Ok(pokemonsDto);
         }
         [HttpPost]

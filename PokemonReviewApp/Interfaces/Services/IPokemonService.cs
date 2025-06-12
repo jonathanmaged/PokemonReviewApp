@@ -7,7 +7,10 @@ namespace PokemonReviewApp.Interfaces.Services
 {
     public interface IPokemonService
     {
-        Task<OneOf<Pokemon, ConflictError, DatabaseError>> CreatePokemonAsync(PokemonDto pokemonDto);
+        public Task<ICollection<PokemonDto>> GetPokemonsAsync();
+        public Task<PokemonDto> GetPokemonByIdAsync(int id);
+        public Task<double> GetPokemonRatingAsync(int pokeId);
+        //Task<OneOf<Pokemon, ConflictError, DatabaseError>> CreatePokemonAsync(PokemonDto pokemonDto);
 
     }
 }

@@ -11,18 +11,39 @@ namespace PokemonReviewApp.Services
 {
     public class CountryService:ICountryService
     {
-        private readonly ICountryRepository countryRepository;
+        private readonly IUnitOfWork unitOfWork;
         private readonly IMapper mapper;
 
-        public CountryService(ICountryRepository countryRepository,IMapper mapper)
+        public CountryService(IUnitOfWork unitOfWork, IMapper mapper)
         {
-            this.countryRepository = countryRepository;
+            this.unitOfWork = unitOfWork;
             this.mapper = mapper;
         }
 
+
+        public async Task<ICollection<CountryDto>> GetCountriesAsync()
+        {
+            var countries = await unitOfWork.CountryRepository.GetAll();
+            var countriesDto = mapper.Map<List<CountryDto>>(countries);
+            return countriesDto;
+        }
+
+        public async Task<CountryDto?> GetCountryByIdAsync(int id)
+        {
+            var country = await unitOfWork.CountryRepository.GetById(id);
+            var countryDto = mapper.Map<CountryDto>(country);
+            return countryDto;
+        }
+
+        public async Task<CountryDto?> GetCountryOfAnOwnerAsync(int ownerId)
+        {
+            var country = await unitOfWork.CountryRepository.GetCountryByOwnerAsync(ownerId);
+            var countryDto = mapper.Map<CountryDto>(country);
+            return countryDto;
+        }
         public async Task<OneOf<Country, ConflictError, DatabaseError>> CreateCountryAsync(CountryDto countryDto)
         {
-            var country = await countryRepository.GetCountryByNameAsync(countryDto.Name);
+            var country = await unitOfWork.CountryRepository.GetCountryByNameAsync(countryDto.Name);
 
             if (country != null)
             {
@@ -30,8 +51,10 @@ namespace PokemonReviewApp.Services
             }
             country = mapper.Map<Country>(countryDto);
 
-            var saved = await countryRepository.CreateCountryAsync(country);
-            if (!saved)
+            unitOfWork.CountryRepository.Add(country);
+
+            var saved = await unitOfWork.Save();
+            if (saved == 0)
             {
                 return new DatabaseError("Something Went wrong when saving in the database");
             }

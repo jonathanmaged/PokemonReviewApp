@@ -1,9 +1,7 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using PokemonReviewApp.Dto;
-using PokemonReviewApp.Interfaces.Repository;
 using PokemonReviewApp.Interfaces.Services;
-using PokemonReviewApp.Models;
+
 
 namespace PokemonReviewApp.Controllers
 {
@@ -11,14 +9,11 @@ namespace PokemonReviewApp.Controllers
     [ApiController]
     public class CategoriesController : Controller
     {
-        private readonly ICategoryRepository _categoryRepository;
-        private readonly IMapper _mapper;
+
         private readonly ICategoryService categoryService;
 
-        public CategoriesController(ICategoryRepository categoryRepository, IMapper mapper,ICategoryService categoryService)
+        public CategoriesController(ICategoryService categoryService)
         {
-            _categoryRepository = categoryRepository;
-            _mapper = mapper;
             this.categoryService = categoryService;
         }
 
@@ -26,10 +21,7 @@ namespace PokemonReviewApp.Controllers
         public async Task<IActionResult> GetCategories()
         {
            
-            var categories =  await _categoryRepository.GetCategoriesAsync();
-            var categoriesDto = _mapper.Map<ICollection<CategoryDto>>(categories);
-
-
+            var categoriesDto =  await categoryService.GetCategoriesAsync();
             return Ok(categoriesDto);
         }
 
@@ -39,27 +31,25 @@ namespace PokemonReviewApp.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var category = await _categoryRepository.GetCategoryByIdAsync(categoryId);
+            var categoryDto = await categoryService.GetCategoryByIdAsync(categoryId);
 
-            if(category == null)
+            if(categoryDto == null)
                 return NotFound();
 
-            var categoryDto = _mapper.Map<CategoryDto>(category);
             return Ok(categoryDto);
         }
 
-        [HttpGet("{categoryId}/pokemon")]
+        [HttpGet("{categoryId}/pokemons")]
         public async Task<IActionResult> GetPokemonByCategory(int categoryId)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var pokemons = await _categoryRepository.GetPokemonByCategoryAsync(categoryId);
+            var pokemonDto = await categoryService.GetPokemonByCategoryAsync(categoryId);
 
-            if (pokemons ==null || !pokemons.Any())
+            if (pokemonDto == null || !pokemonDto.Any())
                 return NotFound();
 
-            var pokemonDto = _mapper.Map<List<PokemonDto>>(pokemons);
             return Ok(pokemonDto);
         }
 

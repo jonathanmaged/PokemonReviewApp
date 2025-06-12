@@ -13,36 +13,30 @@ namespace PokemonReviewApp.Controllers
     [ApiController]
     public class CountriesController : Controller
     {
-        private readonly ICountryRepository _countryRepository;
-        private readonly IMapper _mapper;
         private readonly ICountryService countryService;
 
-        public CountriesController(ICountryRepository countryRepository, IMapper mapper,ICountryService countryService)
+        public CountriesController(ICountryService countryService)
         {
-            _countryRepository = countryRepository;
-            _mapper = mapper;
+
             this.countryService = countryService;
         }
         [HttpGet]
-        public IActionResult GetCountries()
+        public async Task<IActionResult> GetCountries()
         {
-            var countries = _countryRepository.GetCountriesAsync();
-            var countriesDto = _mapper.Map<List<CountryDto>>(countries);
-
+            var countriesDto = await countryService.GetCountriesAsync();
             return Ok(countriesDto);
         }
         [HttpGet("{countryId}")]
-        public IActionResult GetCountry(int countryId)
+        public async Task<IActionResult> GetCountry(int countryId)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var country = _countryRepository.GetCountryByIdAsync(countryId);
+            var countryDto = await countryService.GetCountryByIdAsync(countryId);
 
-            if (country == null)
+            if (countryDto == null)
                 return NotFound();
 
-            var countryDto = _mapper.Map<CountryDto>(country);
             return Ok(countryDto);
         }
         [HttpGet("owner/{ownerId}")]
@@ -51,12 +45,11 @@ namespace PokemonReviewApp.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var country = await _countryRepository.GetCountryByOwnerAsync(ownerId);
+            var countryDto = await countryService.GetCountryOfAnOwnerAsync(ownerId);
 
-            if(country == null)
+            if(countryDto == null)
                 return NotFound();
 
-            var countryDto = _mapper.Map<CountryDto>(country);
             return Ok(countryDto);
         }
         [HttpPost]

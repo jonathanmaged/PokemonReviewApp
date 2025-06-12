@@ -7,7 +7,10 @@ namespace PokemonReviewApp.Interfaces.Services
 {
     public interface ICountryService
     {
-        Task<OneOf<Country, ConflictError, DatabaseError>> CreateCountryAsync(CountryDto countryDto);
+        public Task<ICollection<CountryDto>> GetCountriesAsync();
+        public Task<CountryDto?> GetCountryByIdAsync(int id);
+        public Task<CountryDto?> GetCountryOfAnOwnerAsync(int ownerId);
+        public Task<OneOf<Country, ConflictError, DatabaseError>> CreateCountryAsync(CountryDto countryDto);
 
     }
 }

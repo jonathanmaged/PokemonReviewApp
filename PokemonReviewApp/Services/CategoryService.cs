@@ -11,18 +11,48 @@ namespace PokemonReviewApp.Services
 {
     public class CategoryService:ICategoryService
     {
-        private readonly ICategoryRepository categoryRepository;
+        private readonly IUnitOfWork unitOfWork;
         private readonly IMapper mapper;
 
-        public CategoryService(ICategoryRepository categoryRepository,IMapper mapper)
+        public CategoryService(IUnitOfWork unitOfWork, IMapper mapper)
         {
-            this.categoryRepository = categoryRepository;
+            this.unitOfWork = unitOfWork;
             this.mapper = mapper;
         }
 
+
+        public async Task<ICollection<CategoryDto>> GetCategoriesAsync()
+        {
+            var categories = await unitOfWork.CategoryRepository.GetAll();
+            var categoriesDto = mapper.Map<ICollection<CategoryDto>>(categories);
+            return categoriesDto;
+        }
+
+        public async Task<CategoryDto?> GetCategoryByIdAsync(int id)
+        {
+            var category = await unitOfWork.CategoryRepository.GetById(id);
+            var categoryDto = mapper.Map<CategoryDto>(category);
+            return categoryDto;
+
+        }
+
+        public async Task<CategoryDto?> GetCategoryByNameAsync(string name)
+        {
+            var category = await unitOfWork.CategoryRepository.GetCategoryByNameAsync(name);
+            var categoryDto = mapper.Map<CategoryDto>(category);
+            return categoryDto;
+        }
+
+        public async Task<ICollection<PokemonDto>> GetPokemonByCategoryAsync(int categoryId)
+        {
+            var pokemons = await unitOfWork.CategoryRepository.GetPokemonByCategoryAsync(categoryId);
+            var pokemonDto = mapper.Map<List<PokemonDto>>(pokemons);
+            return pokemonDto;
+
+        }
         public async Task<OneOf<Category, ConflictError, DatabaseError>> CreateCategoryAsync(CategoryDto categoryDto)
         {
-            var category = await categoryRepository.GetCategoryByNameAsync(categoryDto.Name);
+            var category = await unitOfWork.CategoryRepository.GetCategoryByNameAsync(categoryDto.Name);
 
             if (category != null)
             {
@@ -30,8 +60,10 @@ namespace PokemonReviewApp.Services
             }
             category = mapper.Map<Category>(categoryDto);
 
-            var saved = await categoryRepository.CreateCategoryAsync(category);
-            if (!saved)
+            unitOfWork.CategoryRepository.Add(category);
+
+            var saved = await unitOfWork.Save();
+            if (saved==0)
             {
                 return new DatabaseError("Something Went wrong when saving in the database");
             }
