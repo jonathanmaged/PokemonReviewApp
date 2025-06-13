@@ -1,5 +1,6 @@
 ﻿using OneOf;
-using PokemonReviewApp.Dto;
+using PokemonReviewApp.Dto.CreateDto;
+using PokemonReviewApp.Dto.GetDto;
 using PokemonReviewApp.Errors;
 using PokemonReviewApp.Models;
 
@@ -11,6 +12,6 @@ namespace PokemonReviewApp.Interfaces.Services
         public Task<OwnerDto?> GetOwnerByIdAsync(int id);
         public Task<ICollection<OwnerDto>> GetOwnersOfAPokemonAsync(int pokeId);
         public Task<ICollection<PokemonDto>> GetPokemonsByOwnerAsync(int ownerId);
-        Task<OneOf<Owner, ConflictError, DatabaseError>> CreateOwnerAsync(OwnerDto ownerDto, string countryName);
+        Task<OneOf<Owner, ConflictError<Owner>, DatabaseError,NotFoundError>> CreateOwnerAsync(CreateOwnerDto ownerDto, string countryName);
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace PokemonReviewApp.Dto
+﻿namespace PokemonReviewApp.Dto.GetDto
 {
     public class CategoryDto
     {

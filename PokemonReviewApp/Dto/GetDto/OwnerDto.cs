@@ -1,4 +1,4 @@
-﻿namespace PokemonReviewApp.Dto
+﻿namespace PokemonReviewApp.Dto.GetDto
 {
     public class OwnerDto
     {
@@ -6,7 +6,7 @@
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Gym { get; set; }
-        public string CountryName { get; set; }
-        public ICollection<SimplePokemonDto> Pokemons { get; set; }
+        public int CountryId { get; set; }
+        
     }
 }

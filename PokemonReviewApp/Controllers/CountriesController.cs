@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using PokemonReviewApp.Dto;
+using PokemonReviewApp.Dto.GetDto;
 using PokemonReviewApp.Interfaces.Repository;
 using PokemonReviewApp.Interfaces.Services;
 using PokemonReviewApp.Models;

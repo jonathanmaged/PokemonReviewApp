@@ -15,7 +15,7 @@ namespace PokemonReviewApp.Repositories
 
         public async Task<Country> GetCountryByNameAsync(string name)
         {
-            return await context.Countries.FirstOrDefaultAsync(c => c.Name == name);
+            return await context.Countries.FirstOrDefaultAsync(c => c.Name.Trim().ToLower() == name.Trim().ToLower());
 
         }
 

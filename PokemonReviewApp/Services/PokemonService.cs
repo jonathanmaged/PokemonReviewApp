@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using OneOf;
-using PokemonReviewApp.Dto;
+using PokemonReviewApp.Dto.CreateDto;
+using PokemonReviewApp.Dto.GetDto;
 using PokemonReviewApp.Errors;
 using PokemonReviewApp.Interfaces.Repository;
 using PokemonReviewApp.Interfaces.Services;
@@ -12,11 +13,13 @@ namespace PokemonReviewApp.Services
     public class PokemonService:IPokemonService
     {
         private readonly IUnitOfWork unitOfWork;
+        private readonly ICategoryService categoryService;
         private readonly IMapper mapper;
 
-        public PokemonService(IUnitOfWork unitOfWork, IMapper mapper)
+        public PokemonService(IUnitOfWork unitOfWork,ICategoryService categoryService, IMapper mapper)
         {
             this.unitOfWork = unitOfWork;
+            this.categoryService = categoryService;
             this.mapper = mapper;
         }
         public async Task<ICollection<PokemonDto>> GetPokemonsAsync()
@@ -37,38 +40,52 @@ namespace PokemonReviewApp.Services
             var rating = await unitOfWork.PokemonRepository.GetPokemonRatingAsync(pokeId);
             return rating;
         }
-        //public async Task<OneOf<Pokemon, ConflictError, DatabaseError>> CreatePokemonAsync(PokemonDto pokemonDto)
-        //{
-        //    var pokemon = await pokemonRepository.GetPokemonByNameAsync(pokemonDto.Name);
+        public async Task<OneOf<Pokemon, ConflictError<Pokemon>, DatabaseError>> CreatePokemonAsync(CreatePokemonDto createPokemonDto, string categoryName)
+        {
+            var conflictCheck = await CheckConflictAsync(createPokemonDto.Name);
+            if (conflictCheck is not null) { return conflictCheck; }
+            
+            var pokemon = mapper.Map<Pokemon>(createPokemonDto);
 
-        //    if (pokemon != null)
-        //    {
-        //        return new ConflictError("pokemon Already Exists");
-        //    }
+            var DatabaseError = await HandleCategoryAssignmentAsync(categoryName, pokemon);
+            if (DatabaseError is not null) { return DatabaseError; }
 
-        //    pokemon = mapper.Map<Pokemon>(pokemonDto);
+            unitOfWork.PokemonRepository.Add(pokemon);
+            var saved = await unitOfWork.Save();
+            if (saved == 0) return new DatabaseError("Something Went wrong when saving in the database");
+            return pokemon;
+        }
+        private async Task<ConflictError<Pokemon>?> CheckConflictAsync(string name)
+        {
+            var pokemon = await unitOfWork.PokemonRepository.GetPokemonByNameAsync(name);
 
-        //    var countryDto = new CountryDto { Name = countryName };
-        //    var result = await countryService.CreateCountryAsync(countryDto);
+            if (pokemon != null)
+            {
+                return new ConflictError<Pokemon>("pokemon Already Exists", null);
+            }
+            return null;
+        }
+        private async Task<DatabaseError?> HandleCategoryAssignmentAsync(string categoryName, Pokemon pokemon)
+        {
 
-        //    if (result.IsT2)
-        //    {
-        //        return new DatabaseError("Something Went wrong when saving in the database");
-        //    }
-        //    if (result.IsT0)
-        //    {
-        //        pokemon.Country = result.AsT0;
-        //    }
-        //    else if (result.IsT1)
-        //    {
-        //        pokemon.Country = await countryRepository.GetCountryByNameAsync(countryName);
+            var categoryDto = new CategoryDto { Name = categoryName };
+            var result = await categoryService.CreateCategoryAsync(categoryDto);
 
-        //    }
+            if (result.IsT2)
+            {
+                return new DatabaseError("Something Went wrong when saving in the database");
+            }
+            if (result.IsT0)
+            {
+                pokemon.Category = result.AsT0;
+            }
+            else if (result.IsT1)
+            {
+                pokemon.Category = result.AsT1.Entity;
 
-        //    var saved = await _pokemonRepository.CreatepokemonAsync(pokemon);
-        //    if (!saved)
-        //        return new DatabaseError("Something Went wrong when saving in the database");
-        //    return pokemon;
-        //}
+            }
+            return null;
+        }
+
     }
 }

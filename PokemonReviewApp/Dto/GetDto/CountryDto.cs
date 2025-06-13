@@ -1,9 +1,8 @@
-﻿namespace PokemonReviewApp.Dto
+﻿namespace PokemonReviewApp.Dto.GetDto
 {
-    public class SimplePokemonDto
+    public class CountryDto
     {
         public int Id { get; set; }
         public string Name { get; set; }
-
     }
 }

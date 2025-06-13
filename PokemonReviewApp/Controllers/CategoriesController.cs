@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PokemonReviewApp.Dto;
+using PokemonReviewApp.Dto.GetDto;
 using PokemonReviewApp.Interfaces.Services;
-
 
 namespace PokemonReviewApp.Controllers
 {

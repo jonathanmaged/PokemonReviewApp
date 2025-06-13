@@ -21,7 +21,7 @@ namespace PokemonReviewApp.Repositories
 
         public async Task<Pokemon?> GetPokemonByNameAsync(string name)
         {
-            return await context.Pokemons.FirstOrDefaultAsync(p => p.Name == name);
+            return await context.Pokemons.FirstOrDefaultAsync(p => p.Name.Trim().ToLower() == name.Trim().ToLower());
 
         }
         public async Task<double> GetPokemonRatingAsync(int id)
@@ -30,6 +30,10 @@ namespace PokemonReviewApp.Repositories
             if (await reviews.CountAsync() == 0)
                 return 0;
             return await reviews.AverageAsync(r => r.Rating);
+        }
+        public async Task<bool> CheckListOfPokemonIdAsync(IEnumerable<int> pokemonsId) {
+            return await context.Pokemons.CountAsync(p => pokemonsId.Contains(p.Id)) == pokemonsId.Count();
+            
         }
     }
 }

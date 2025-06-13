@@ -16,7 +16,7 @@ namespace PokemonReviewApp.Repositories
 
         public async Task<Category?> GetCategoryByNameAsync(string name)
         {
-            return await context.Categories.FirstOrDefaultAsync(c => c.Name == name);
+            return await context.Categories.FirstOrDefaultAsync(c => c.Name.Trim().ToLower() == name.Trim().ToLower());
         }
 
         public async Task<ICollection<Pokemon>> GetPokemonByCategoryAsync(int categoryId)

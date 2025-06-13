@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using PokemonReviewApp.Dto;
+using PokemonReviewApp.Dto.CreateDto;
 using PokemonReviewApp.Interfaces.Repository;
 using PokemonReviewApp.Interfaces.Services;
 using PokemonReviewApp.Models;
@@ -51,21 +52,22 @@ namespace PokemonReviewApp.Controllers
             var rating =await pokemonService.GetPokemonRatingAsync(pokeId);
             return Ok(rating);
         }
-        //[HttpPost]
-        //public async Task<IActionResult> CreatePokemon([FromBody] PokemonDto pokemonDto)
-        //{
-        //    if (!ModelState.IsValid)
-        //        return BadRequest(ModelState);
+        [HttpPost]
+        public async Task<IActionResult> CreatePokemon([FromBody] CreatePokemonDto createPokemonDto,
+           [FromQuery] string categoryName )
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-        //    var result = await pokemonService.CreatePokemonAsync(pokemonDto);
+            var result = await pokemonService.CreatePokemonAsync(createPokemonDto,categoryName);
 
-        //    return result.Match<IActionResult>(
-        //            owner => Ok("Created successfully"),
-        //            conflictError => StatusCode(422, conflictError.Message),
-        //            databaseError => StatusCode(500, databaseError.Message)
-        //            );
-        
-        //}
+            return result.Match<IActionResult>(
+                    owner => Ok("Created successfully"),
+                    conflictError => StatusCode(422, conflictError.Message),
+                    databaseError => StatusCode(500, databaseError.Message)
+                    );
+
+        }
 
     }
 }

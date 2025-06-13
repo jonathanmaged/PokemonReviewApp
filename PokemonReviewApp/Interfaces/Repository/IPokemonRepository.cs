@@ -6,5 +6,6 @@ namespace PokemonReviewApp.Interfaces.Repository
     {
         Task<Pokemon?> GetPokemonByNameAsync(string name);
         Task<double> GetPokemonRatingAsync(int id);
+        public Task<bool> CheckListOfPokemonIdAsync(IEnumerable<int> pokemonsId);
     }
 }

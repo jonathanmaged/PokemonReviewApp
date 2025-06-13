@@ -1,10 +1,13 @@
 ﻿namespace PokemonReviewApp.Errors
 {
-    public class ConflictError:Error
+    public class ConflictError<T>:Error where T:class
     {
-        public ConflictError(string message)
+        public T Entity { get; }
+
+        public ConflictError(string message, T entity )
         {
             Message = message;
+            Entity = entity;
         }
     }
 }

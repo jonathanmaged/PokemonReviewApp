@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using OneOf;
-using PokemonReviewApp.Dto;
+using PokemonReviewApp.Dto.GetDto;
 using PokemonReviewApp.Errors;
 using PokemonReviewApp.Interfaces.Repository;
 using PokemonReviewApp.Interfaces.Services;
@@ -50,13 +50,13 @@ namespace PokemonReviewApp.Services
             return pokemonDto;
 
         }
-        public async Task<OneOf<Category, ConflictError, DatabaseError>> CreateCategoryAsync(CategoryDto categoryDto)
+        public async Task<OneOf<Category, ConflictError<Category>, DatabaseError>> CreateCategoryAsync(CategoryDto categoryDto)
         {
             var category = await unitOfWork.CategoryRepository.GetCategoryByNameAsync(categoryDto.Name);
 
             if (category != null)
             {
-                return new ConflictError("Category Already Exists");
+                return new ConflictError<Category>("Category Already Exists",category);
             }
             category = mapper.Map<Category>(categoryDto);
 

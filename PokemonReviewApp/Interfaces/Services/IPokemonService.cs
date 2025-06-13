@@ -1,5 +1,6 @@
 ﻿using OneOf;
-using PokemonReviewApp.Dto;
+using PokemonReviewApp.Dto.CreateDto;
+using PokemonReviewApp.Dto.GetDto;
 using PokemonReviewApp.Errors;
 using PokemonReviewApp.Models;
 
@@ -10,7 +11,7 @@ namespace PokemonReviewApp.Interfaces.Services
         public Task<ICollection<PokemonDto>> GetPokemonsAsync();
         public Task<PokemonDto> GetPokemonByIdAsync(int id);
         public Task<double> GetPokemonRatingAsync(int pokeId);
-        //Task<OneOf<Pokemon, ConflictError, DatabaseError>> CreatePokemonAsync(PokemonDto pokemonDto);
+        Task<OneOf<Pokemon, ConflictError<Pokemon>, DatabaseError>> CreatePokemonAsync(CreatePokemonDto createPokemonDto,string categoryName);
 
     }
 }

@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using PokemonReviewApp.Dto;
+using PokemonReviewApp.Dto.CreateDto;
+using PokemonReviewApp.Dto.GetDto;
+using PokemonReviewApp.Errors;
 using PokemonReviewApp.Interfaces.Repository;
 using PokemonReviewApp.Interfaces.Services;
 using PokemonReviewApp.Models;
@@ -62,17 +64,20 @@ namespace PokemonReviewApp.Controllers
             return Ok(pokemonsDto);
         }
         [HttpPost]
-        public async Task<IActionResult> CreateOwner([FromBody] OwnerDto ownerDto,[FromQuery] string countryName)
+        public async Task<IActionResult> CreateOwner(
+            [FromBody] CreateOwnerDto createOwnerDto,
+            [FromQuery] string countryName)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var result = await ownerService.CreateOwnerAsync(ownerDto,countryName);
+            var result = await ownerService.CreateOwnerAsync(createOwnerDto,countryName);
 
             return result.Match<IActionResult>(
                     owner => Ok("Created successfully"),
                     conflictError => StatusCode(422, conflictError.Message),
-                    databaseError => StatusCode(500, databaseError.Message)
+                    databaseError => StatusCode(500, databaseError.Message),
+                    NotFoundError => StatusCode(404,NotFoundError.Message)
                     );
 
         }

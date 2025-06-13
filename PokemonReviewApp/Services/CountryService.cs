@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using OneOf;
-using PokemonReviewApp.Dto;
+using PokemonReviewApp.Dto.GetDto;
 using PokemonReviewApp.Errors;
 using PokemonReviewApp.Interfaces.Repository;
 using PokemonReviewApp.Interfaces.Services;
@@ -41,23 +41,21 @@ namespace PokemonReviewApp.Services
             var countryDto = mapper.Map<CountryDto>(country);
             return countryDto;
         }
-        public async Task<OneOf<Country, ConflictError, DatabaseError>> CreateCountryAsync(CountryDto countryDto)
+        public async Task<OneOf<Country, ConflictError<Country>, DatabaseError>> CreateCountryAsync(CountryDto countryDto)
         {
             var country = await unitOfWork.CountryRepository.GetCountryByNameAsync(countryDto.Name);
 
             if (country != null)
             {
-                return new ConflictError("Country Already Exists");
+                return new ConflictError<Country>("Country Already Exists",country);
             }
             country = mapper.Map<Country>(countryDto);
 
             unitOfWork.CountryRepository.Add(country);
 
-            var saved = await unitOfWork.Save();
-            if (saved == 0)
-            {
-                return new DatabaseError("Something Went wrong when saving in the database");
-            }
+            var saved = await unitOfWork.Save();                  
+            if (saved == 0) return new DatabaseError("Something Went wrong when saving in the database");
+
             return country;
         }
     }
