@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using PokemonReviewApp.Dto.CreateDto;
 using PokemonReviewApp.Dto.GetDto;
 using PokemonReviewApp.Interfaces.Services;
 using PokemonReviewApp.Services;
@@ -54,7 +55,7 @@ namespace PokemonReviewApp.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateCategory([FromBody] CategoryDto categoryDto)
+        public async Task<IActionResult> CreateCategory([FromBody] CreateCategoryDto categoryDto)
         {
             if(!ModelState.IsValid) 
                 return BadRequest(ModelState);
@@ -81,5 +82,19 @@ namespace PokemonReviewApp.Controllers
                    databaseError => StatusCode(500, databaseError.Message)
                    );
         }
+        [HttpDelete("{categoryId}")]
+        public async Task<IActionResult> DeleteCategory(int categoryId)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            var result = await categoryService.DeleteCategoryAsync(categoryId);
+
+            return result.Match<IActionResult>(
+                   category => NoContent(),
+                   notFoundError => StatusCode(404, notFoundError.Message),
+                   databaseError => StatusCode(500, databaseError.Message)
+                   );
+        }
+
     }
 }

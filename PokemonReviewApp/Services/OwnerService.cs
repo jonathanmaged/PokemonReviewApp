@@ -88,7 +88,7 @@ namespace PokemonReviewApp.Services
         }
         private async Task<DatabaseError?> HandleCountryAssignmentAsync(string countryName,Owner owner) 
         {
-            var countryDto = new CountryDto { Name = countryName };
+            var countryDto = new CreateCountryDto { Name = countryName };
             var result = await countryService.CreateCountryAsync(countryDto);
 
             if (result.IsT2)
@@ -134,6 +134,16 @@ namespace PokemonReviewApp.Services
             var saved = await unitOfWork.Save();
             if (saved == 0)
                 return new DatabaseError("Couldnt save in the database");
+            return owner;
+        }
+        public async Task<OneOf<Owner, NotFoundError, DatabaseError>> DeleteOwnerAsync(int id)
+        {
+            var owner = await unitOfWork.OwnerRepository.GetById(id);
+            if (owner is null) return new NotFoundError("owner with that id doesnt exist");
+
+            unitOfWork.OwnerRepository.Delete(owner);
+            var saved = await unitOfWork.Save();
+            if (saved == 0) return new DatabaseError("Error Happen When Deleting Entity From The Database");
             return owner;
         }
     }

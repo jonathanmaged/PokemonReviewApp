@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using OneOf;
+using PokemonReviewApp.Dto.CreateDto;
 using PokemonReviewApp.Dto.GetDto;
 using PokemonReviewApp.Errors;
 using PokemonReviewApp.Interfaces.Repository;
@@ -41,7 +42,7 @@ namespace PokemonReviewApp.Services
             var countryDto = mapper.Map<CountryDto>(country);
             return countryDto;
         }
-        public async Task<OneOf<Country, ConflictError<Country>, DatabaseError>> CreateCountryAsync(CountryDto countryDto)
+        public async Task<OneOf<Country, ConflictError<Country>, DatabaseError>> CreateCountryAsync(CreateCountryDto countryDto)
         {
             var country = await unitOfWork.CountryRepository.GetCountryByNameAsync(countryDto.Name);
 
@@ -72,6 +73,16 @@ namespace PokemonReviewApp.Services
             var saved = await unitOfWork.Save();
             if (saved == 0)
                 return new DatabaseError("Couldnt save in the database");
+            return country;
+        }
+        public async Task<OneOf<Country, NotFoundError, DatabaseError>> DeleteCountryAsync(int id)
+        {
+            var country = await unitOfWork.CountryRepository.GetById(id);
+            if (country is null) return new NotFoundError("country with that id doesnt exist");
+
+            unitOfWork.CountryRepository.Delete(country);
+            var saved = await unitOfWork.Save();
+            if (saved == 0) return new DatabaseError("Error Happen When Deleting Entity From The Database");
             return country;
         }
     }

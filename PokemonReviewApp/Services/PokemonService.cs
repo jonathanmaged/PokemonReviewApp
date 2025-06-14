@@ -68,7 +68,7 @@ namespace PokemonReviewApp.Services
         private async Task<DatabaseError?> HandleCategoryAssignmentAsync(string categoryName, Pokemon pokemon)
         {
 
-            var categoryDto = new CategoryDto { Name = categoryName };
+            var categoryDto = new CreateCategoryDto { Name = categoryName };
             var result = await categoryService.CreateCategoryAsync(categoryDto);
 
             if (result.IsT2)
@@ -104,6 +104,17 @@ namespace PokemonReviewApp.Services
             var saved = await unitOfWork.Save();
             if(saved==0)
                 return new DatabaseError("Couldnt save in the database");
+            return pokemon;
+        }
+
+        public async Task<OneOf<Pokemon, NotFoundError, DatabaseError>> DeletePokemonAsync(int id)
+        {
+            var pokemon = await unitOfWork.PokemonRepository.GetById(id);
+            if (pokemon is null) return new NotFoundError("Pokemon with that id doesnt exist");
+
+            unitOfWork.PokemonRepository.Delete(pokemon);
+            var saved = await unitOfWork.Save();
+            if(saved==0) return new DatabaseError("Error Happen When Deleting Entity From The Database");
             return pokemon;
         }
     }

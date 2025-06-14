@@ -24,12 +24,15 @@ namespace PokemonReviewApp.Data
             modelBuilder.Entity<PokemonOwner>()
                 .HasOne(po => po.Pokemon)
                 .WithMany(p => p.PokemonOwners)
-                .HasForeignKey(po => po.PokemonId);
+                .HasForeignKey(po => po.PokemonId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<PokemonOwner>()
                 .HasOne(po => po.Owner)
                 .WithMany(o => o.OwnerPokemons )
-                .HasForeignKey(po => po.OwnerId);
+                .HasForeignKey(po => po.OwnerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
         }
     }
 }

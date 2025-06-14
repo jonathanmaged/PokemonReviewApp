@@ -93,6 +93,20 @@ namespace PokemonReviewApp.Controllers
                    databaseError => StatusCode(500, databaseError.Message)
                    );
         }
+        [HttpDelete("{ownerId}")]
+        public async Task<IActionResult> DeleteOwner(int ownerId)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            var result = await ownerService.DeleteOwnerAsync(ownerId);
+
+            return result.Match<IActionResult>(
+                   owner => NoContent(),
+                   notFoundError => StatusCode(404, notFoundError.Message),
+                   databaseError => StatusCode(500, databaseError.Message)
+                   );
+        }
+
 
     }
 }

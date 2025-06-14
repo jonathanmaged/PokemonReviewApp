@@ -13,6 +13,7 @@ namespace PokemonReviewApp.Interfaces.Services
         public Task<double> GetPokemonRatingAsync(int pokeId);
         Task<OneOf<Pokemon, ConflictError<Pokemon>, DatabaseError>> CreatePokemonAsync(CreatePokemonDto createPokemonDto,string categoryName);
         public Task<OneOf<Pokemon, NotFoundError, DatabaseError>> UpdatePokemonAsync(PokemonDto pokemonDto);
+        public Task<OneOf<Pokemon, NotFoundError, DatabaseError>> DeletePokemonAsync(int id);
 
 
     }

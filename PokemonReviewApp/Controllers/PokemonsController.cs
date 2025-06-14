@@ -25,7 +25,7 @@ namespace PokemonReviewApp.Controllers
         [HttpGet]
         public async Task<IActionResult> GetPokemons()
         {
-            var pokemonsDto = await pokemonService.GetPokemonsAsync();    
+            var pokemonsDto = await pokemonService.GetPokemonsAsync();
             return Ok(pokemonsDto);
         }
 
@@ -33,7 +33,7 @@ namespace PokemonReviewApp.Controllers
 
         public async Task<IActionResult> GetPokemon(int pokeId)
         {
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             var pokemonDto = await pokemonService.GetPokemonByIdAsync(pokeId);
@@ -50,17 +50,17 @@ namespace PokemonReviewApp.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var rating =await pokemonService.GetPokemonRatingAsync(pokeId);
+            var rating = await pokemonService.GetPokemonRatingAsync(pokeId);
             return Ok(rating);
         }
         [HttpPost]
         public async Task<IActionResult> CreatePokemon([FromBody] CreatePokemonDto createPokemonDto,
-           [FromQuery] string categoryName )
+           [FromQuery] string categoryName)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var result = await pokemonService.CreatePokemonAsync(createPokemonDto,categoryName);
+            var result = await pokemonService.CreatePokemonAsync(createPokemonDto, categoryName);
 
             return result.Match<IActionResult>(
                     owner => Ok("Created successfully"),
@@ -80,6 +80,19 @@ namespace PokemonReviewApp.Controllers
                    databaseError => StatusCode(500, databaseError.Message)
                    );
         }
+        [HttpDelete("{pokemonId}")]
+        public async Task<IActionResult> DeletePokemon(int pokemonId) {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            var result = await pokemonService.DeletePokemonAsync(pokemonId);
+
+            return result.Match<IActionResult>(
+                   pokemon => NoContent(),
+                   notFoundError => StatusCode(404, notFoundError.Message),
+                   databaseError => StatusCode(500, databaseError.Message)
+                   );
+        }
+
 
     }
 }

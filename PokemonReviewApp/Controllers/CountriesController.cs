@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using PokemonReviewApp.Dto.CreateDto;
 using PokemonReviewApp.Dto.GetDto;
 using PokemonReviewApp.Interfaces.Repository;
 using PokemonReviewApp.Interfaces.Services;
@@ -53,7 +54,7 @@ namespace PokemonReviewApp.Controllers
             return Ok(countryDto);
         }
         [HttpPost]
-        public async Task<IActionResult> CreateCountry([FromBody] CountryDto countryDto)
+        public async Task<IActionResult> CreateCountry([FromBody] CreateCountryDto countryDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -79,6 +80,20 @@ namespace PokemonReviewApp.Controllers
                    databaseError => StatusCode(500, databaseError.Message)
                    );
         }
+        [HttpDelete("{countryId}")]
+        public async Task<IActionResult> DeleteCountry(int countryId)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            var result = await countryService.DeleteCountryAsync(countryId);
+
+            return result.Match<IActionResult>(
+                   country => NoContent(),
+                   notFoundError => StatusCode(404, notFoundError.Message),
+                   databaseError => StatusCode(500, databaseError.Message)
+                   );
+        }
+
 
     }
 }

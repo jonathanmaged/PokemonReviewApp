@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using OneOf;
+using PokemonReviewApp.Dto.CreateDto;
 using PokemonReviewApp.Dto.GetDto;
 using PokemonReviewApp.Errors;
 using PokemonReviewApp.Interfaces.Repository;
@@ -50,7 +51,7 @@ namespace PokemonReviewApp.Services
             return pokemonDto;
 
         }
-        public async Task<OneOf<Category, ConflictError<Category>, DatabaseError>> CreateCategoryAsync(CategoryDto categoryDto)
+        public async Task<OneOf<Category, ConflictError<Category>, DatabaseError>> CreateCategoryAsync(CreateCategoryDto categoryDto)
         {
             var category = await unitOfWork.CategoryRepository.GetCategoryByNameAsync(categoryDto.Name);
 
@@ -82,6 +83,16 @@ namespace PokemonReviewApp.Services
             var saved = await unitOfWork.Save();
             if (saved == 0)
                 return new DatabaseError("Couldnt save in the database");
+            return category;
+        }
+        public async Task<OneOf<Category, NotFoundError, DatabaseError>> DeleteCategoryAsync(int id)
+        {
+            var category = await unitOfWork.CategoryRepository.GetById(id);
+            if (category is null) return new NotFoundError("category with that id doesnt exist");
+
+            unitOfWork.CategoryRepository.Delete(category);
+            var saved = await unitOfWork.Save();
+            if (saved == 0) return new DatabaseError("Error Happen When Deleting Entity From The Database");
             return category;
         }
     }
