@@ -69,5 +69,20 @@ namespace PokemonReviewApp.Services
             }
             return category;
         }
+
+        public async Task<OneOf<Category, NotFoundError, DatabaseError>> UpdateCategoryAsync(CategoryDto categoryDto)
+        {
+            var category = await unitOfWork.CategoryRepository.GetById(categoryDto.Id.Value);
+            if (category is null)
+                return new NotFoundError("category id provided doesnt exist in the database");
+
+            mapper.Map(categoryDto, category);
+
+            unitOfWork.CategoryRepository.Update(category);
+            var saved = await unitOfWork.Save();
+            if (saved == 0)
+                return new DatabaseError("Couldnt save in the database");
+            return category;
+        }
     }
 }

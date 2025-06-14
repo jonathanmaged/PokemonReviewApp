@@ -13,5 +13,6 @@ namespace PokemonReviewApp.Interfaces.Services
         public Task<ICollection<OwnerDto>> GetOwnersOfAPokemonAsync(int pokeId);
         public Task<ICollection<PokemonDto>> GetPokemonsByOwnerAsync(int ownerId);
         Task<OneOf<Owner, ConflictError<Owner>, DatabaseError,NotFoundError>> CreateOwnerAsync(CreateOwnerDto ownerDto, string countryName);
+        public Task<OneOf<Owner, NotFoundError, DatabaseError>> UpdateOwnerAsync(OwnerDto ownerDto);
     }
 }

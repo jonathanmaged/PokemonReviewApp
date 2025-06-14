@@ -15,20 +15,20 @@ namespace PokemonReviewApp.Services
     {
         private readonly IUnitOfWork unitOfWork;
         private readonly ICountryService countryService;
-        private readonly IMapper _mapper;
+        private readonly IMapper mapper;
 
         public OwnerService(IUnitOfWork unitOfWork, ICountryService countryService, IMapper mapper)
         {
             this.unitOfWork = unitOfWork;
 
             this.countryService = countryService;
-            _mapper = mapper;
+            this.mapper = mapper;
         }
 
         public async Task<ICollection<OwnerDto>> GetOwnersAsync()
         {
             var owners = await unitOfWork.OwnerRepository.GetAll();
-            var ownersDto = _mapper.Map<ICollection<OwnerDto>>(owners);
+            var ownersDto = mapper.Map<ICollection<OwnerDto>>(owners);
             return ownersDto;
         }
 
@@ -36,14 +36,14 @@ namespace PokemonReviewApp.Services
         {
             var owner = await unitOfWork.OwnerRepository.GetById(id);
            
-            var ownerDto = _mapper.Map<OwnerDto>(owner);
+            var ownerDto = mapper.Map<OwnerDto>(owner);
             return ownerDto;
         }
 
         public async Task<ICollection<OwnerDto>> GetOwnersOfAPokemonAsync(int pokeId)
         {
             var owners = await unitOfWork.OwnerRepository.GetOwnersOfAPokemonAsync(pokeId);
-            var ownersDto = _mapper.Map<ICollection<OwnerDto>>(owners);
+            var ownersDto = mapper.Map<ICollection<OwnerDto>>(owners);
             return ownersDto;
 
         }
@@ -51,7 +51,7 @@ namespace PokemonReviewApp.Services
         public async Task<ICollection<PokemonDto>> GetPokemonsByOwnerAsync(int ownerId)
         {
             var pokemons = await unitOfWork.OwnerRepository.GetPokemonsByOwnerAsync(ownerId);
-            var pokemonsDto = _mapper.Map<ICollection<PokemonDto>>(pokemons);
+            var pokemonsDto = mapper.Map<ICollection<PokemonDto>>(pokemons);
             return pokemonsDto;
         }
 
@@ -60,7 +60,7 @@ namespace PokemonReviewApp.Services
             var conflictCheck = await CheckConflictAsync(createOwnerDto.LastName);
             if (conflictCheck is not null){return conflictCheck;}
 
-            var owner = _mapper.Map<Owner>(createOwnerDto);
+            var owner = mapper.Map<Owner>(createOwnerDto);
 
             var DatabaseError = await HandleCountryAssignmentAsync(countryName,owner);
             if (DatabaseError is not null) { return DatabaseError; }
@@ -118,5 +118,23 @@ namespace PokemonReviewApp.Services
             return null;
          }
 
+        public async Task<OneOf<Owner, NotFoundError, DatabaseError>> UpdateOwnerAsync(OwnerDto ownerDto)
+        {
+            var country = await unitOfWork.CountryRepository.GetById(ownerDto.CountryId.Value);
+            if (country is null)
+                return new NotFoundError("country id provided doesnt exist in the database");
+
+            var owner = await unitOfWork.OwnerRepository.GetById(ownerDto.Id.Value);
+            if (owner is null)
+                return new NotFoundError("owner id provided doesnt exist in the database");
+
+            mapper.Map(ownerDto, owner);
+
+            unitOfWork.OwnerRepository.Update(owner);
+            var saved = await unitOfWork.Save();
+            if (saved == 0)
+                return new DatabaseError("Couldnt save in the database");
+            return owner;
+        }
     }
 }

@@ -11,6 +11,7 @@ namespace PokemonReviewApp.Interfaces.Services
         public Task<CountryDto?> GetCountryByIdAsync(int id);
         public Task<CountryDto?> GetCountryOfAnOwnerAsync(int ownerId);
         public Task<OneOf<Country, ConflictError<Country>, DatabaseError>> CreateCountryAsync(CountryDto countryDto);
+        public Task<OneOf<Country, NotFoundError, DatabaseError>> UpdateCountryAsync(CountryDto countryDto);
 
     }
 }

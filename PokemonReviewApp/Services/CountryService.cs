@@ -58,6 +58,22 @@ namespace PokemonReviewApp.Services
 
             return country;
         }
+
+        public async Task<OneOf<Country, NotFoundError, DatabaseError>> UpdateCountryAsync(CountryDto countryDto)
+        {
+    
+            var country = await unitOfWork.CountryRepository.GetById(countryDto.Id.Value);
+            if (country is null)
+                return new NotFoundError("country id provided doesnt exist in the database");
+
+            mapper.Map(countryDto, country);
+
+            unitOfWork.CountryRepository.Update(country);
+            var saved = await unitOfWork.Save();
+            if (saved == 0)
+                return new DatabaseError("Couldnt save in the database");
+            return country;
+        }
     }
 }
     

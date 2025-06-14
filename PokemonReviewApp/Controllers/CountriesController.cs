@@ -67,6 +67,18 @@ namespace PokemonReviewApp.Controllers
                     );
 
         }
+        [HttpPut]
+        public async Task<IActionResult> UpdateCountry([FromBody] CountryDto countryDto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            var result = await countryService.UpdateCountryAsync(countryDto);
+            return result.Match<IActionResult>(
+                   pokemon => NoContent(),
+                   notFoundError => StatusCode(404, notFoundError.Message),
+                   databaseError => StatusCode(500, databaseError.Message)
+                   );
+        }
 
     }
 }

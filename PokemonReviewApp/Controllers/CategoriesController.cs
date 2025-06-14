@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PokemonReviewApp.Dto.GetDto;
 using PokemonReviewApp.Interfaces.Services;
+using PokemonReviewApp.Services;
 
 namespace PokemonReviewApp.Controllers
 {
@@ -66,6 +67,19 @@ namespace PokemonReviewApp.Controllers
                     databaseError => StatusCode(500, databaseError.Message)
                     );
 
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> UpdateCategory([FromBody] CategoryDto categoryDto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            var result = await categoryService.UpdateCategoryAsync(categoryDto);
+            return result.Match<IActionResult>(
+                   pokemon => NoContent(),
+                   notFoundError => StatusCode(404, notFoundError.Message),
+                   databaseError => StatusCode(500, databaseError.Message)
+                   );
         }
     }
 }

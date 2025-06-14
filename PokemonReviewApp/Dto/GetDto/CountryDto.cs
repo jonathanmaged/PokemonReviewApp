@@ -1,8 +1,11 @@
-﻿namespace PokemonReviewApp.Dto.GetDto
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace PokemonReviewApp.Dto.GetDto
 {
     public class CountryDto
     {
-        public int Id { get; set; }
+        [Required]
+        public int? Id { get; set; }
         public string Name { get; set; }
     }
 }

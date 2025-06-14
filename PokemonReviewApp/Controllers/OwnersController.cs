@@ -81,6 +81,18 @@ namespace PokemonReviewApp.Controllers
                     );
 
         }
+        [HttpPut]
+        public async Task<IActionResult> UpdateOwner([FromBody] OwnerDto ownerDto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            var result = await ownerService.UpdateOwnerAsync(ownerDto);
+            return result.Match<IActionResult>(
+                   pokemon => NoContent(),
+                   notFoundError => StatusCode(404, notFoundError.Message),
+                   databaseError => StatusCode(500, databaseError.Message)
+                   );
+        }
 
     }
 }
