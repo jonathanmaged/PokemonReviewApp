@@ -32,6 +32,17 @@ namespace PokemonReviewApp.Data
                 .WithMany(o => o.OwnerPokemons )
                 .HasForeignKey(po => po.OwnerId)
                 .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<Owner>()
+                .HasOne(o => o.Country)
+                .WithMany(c => c.Owners)
+                .HasForeignKey(o => o.CountryId)
+                .OnDelete(DeleteBehavior.SetNull);
+            modelBuilder.Entity<Pokemon>()
+            .HasOne(o => o.Category)
+            .WithMany(c => c.Pokemons)
+            .HasForeignKey(o => o.CategoryId)
+            .OnDelete(DeleteBehavior.SetNull);
+
 
         }
     }
