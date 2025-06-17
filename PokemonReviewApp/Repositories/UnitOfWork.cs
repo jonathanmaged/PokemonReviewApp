@@ -13,15 +13,18 @@ namespace PokemonReviewApp.Repositories
         public IOwnerRepository OwnerRepository { get; }
         public IPokemonRepository PokemonRepository { get; }
 
+        public IUserRepository UserRepository { get; }
+
         public UnitOfWork(DataContext context,ICategoryRepository categoryRepository,
                ICountryRepository countryRepository,IOwnerRepository ownerRepository,
-               IPokemonRepository pokemonRepository)
+               IPokemonRepository pokemonRepository,IUserRepository userRepository)
         {
             this.context = context;
             CategoryRepository = categoryRepository;
             CountryRepository = countryRepository;
             OwnerRepository = ownerRepository;
             PokemonRepository = pokemonRepository;
+            UserRepository = userRepository;
         }
 
 

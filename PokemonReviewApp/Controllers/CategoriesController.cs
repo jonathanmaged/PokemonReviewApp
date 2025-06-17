@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PokemonReviewApp.Dto.CreateDto;
 using PokemonReviewApp.Dto.GetDto;
 using PokemonReviewApp.Interfaces.Services;
@@ -6,8 +7,10 @@ using PokemonReviewApp.Services;
 
 namespace PokemonReviewApp.Controllers
 {
+    
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class CategoriesController : Controller
     {
 
@@ -17,7 +20,7 @@ namespace PokemonReviewApp.Controllers
         {
             this.categoryService = categoryService;
         }
-
+        
         [HttpGet]
         public async Task<IActionResult> GetCategories()
         {
@@ -82,6 +85,7 @@ namespace PokemonReviewApp.Controllers
                    databaseError => StatusCode(500, databaseError.Message)
                    );
         }
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{categoryId}")]
         public async Task<IActionResult> DeleteCategory(int categoryId)
         {
