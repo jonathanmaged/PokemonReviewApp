@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using PokemonReviewApp.Dto;
+using PokemonReviewApp.Dto.UserDto;
 using PokemonReviewApp.Interfaces.Services;
 using PokemonReviewApp.Models;
 
@@ -30,9 +30,17 @@ namespace PokemonReviewApp.Controllers
         {
             if (!ModelState.IsValid)  return BadRequest(ModelState);
             var response = await authService.LoginAsync(request);
-            return StatusCode(response.StatusCode, response.StatusMessage);
+            var tokens = (TokenPairDto) response.Entity!;
+            return StatusCode(response.StatusCode, new { tokens.Token, tokens.RefreshToken });
 
         }
+        [HttpPost("refreshToken")]
+        public async Task<IActionResult> ValidateRefreshToken(RefreshTokenRequestDto request)
+        { 
+            var response = await authService.ValidateRefreshToken(request);
+            return StatusCode(response.StatusCode, response.StatusMessage);
+        }
+
 
     }
 }

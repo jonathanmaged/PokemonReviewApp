@@ -1,12 +1,13 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using PokemonReviewApp.Data;
-using PokemonReviewApp.Dto;
+using PokemonReviewApp.Dto.UserDto;
 using PokemonReviewApp.Interfaces.Repository;
 using PokemonReviewApp.Interfaces.Services;
 using PokemonReviewApp.Models;
@@ -33,14 +34,43 @@ namespace PokemonReviewApp.Services
         }
         public async Task<ServiceResponse> LoginAsync(UserDto request)
         {
-            var user = await unitOfWork.UserRepository.GetUserByUserNameAsNoTracking(request.UserName);
+            var user = await unitOfWork.UserRepository.GetUserByUserName(request.UserName);
             if (user == null) return new ServiceResponse(401,"unauthorized access");
 
             var result = new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, request.Password);
             if(result == PasswordVerificationResult.Failed) return new ServiceResponse(401, "unauthorized access");
 
             string token = GenerateToken(user);
-            return new ServiceResponse(200, token);
+            string refreshToken = await CreateAndSaveRefreshToken(user);
+
+            return new ServiceResponse(statusCode:200,entity:new TokenPairDto{Token=token,RefreshToken= refreshToken });
+        }
+        public async Task<ServiceResponse> ValidateRefreshToken(RefreshTokenRequestDto request) 
+        {
+            var user = await unitOfWork.UserRepository.GetUserByUserNameAsNoTracking(request.UserName);
+            if (user == null || user.RefreshToken != request.RefreshToken ||
+                user.RefreshTokenExpiryDate < DateTime.UtcNow) 
+            {
+                return new ServiceResponse(401,"NotAuthorized");
+            }
+            string newToken =  GenerateToken(user);
+            return new ServiceResponse(200,newToken);
+        }
+        private async Task<string> CreateAndSaveRefreshToken(User user) 
+        { 
+            var refreshToken = GenerateRefreshToken();
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiryDate = DateTime.UtcNow.AddDays(7);
+            await unitOfWork.Save();
+            return refreshToken;
+            
+        }
+        private string GenerateRefreshToken() 
+        {
+            var randomNumber = new byte[32];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomNumber);
+            return Convert.ToBase64String(randomNumber);
         }
         private string GenerateToken(User user)
         {

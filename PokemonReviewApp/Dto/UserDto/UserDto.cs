@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace PokemonReviewApp.Dto
+namespace PokemonReviewApp.Dto.UserDto
 {
     public class UserDto
     {

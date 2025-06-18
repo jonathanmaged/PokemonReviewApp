@@ -13,7 +13,10 @@ namespace PokemonReviewApp.Repositories
         {
             this.context = context;
         }
-
+        public async Task<User?> GetUserByUserName(string username)
+        {
+            return await context.Users.FirstOrDefaultAsync(u => u.UserName == username);
+        }
         public async Task<User?> GetUserByUserNameAsNoTracking(string username)
         {
             return await context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.UserName == username);
