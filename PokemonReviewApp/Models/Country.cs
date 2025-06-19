@@ -1,8 +1,7 @@
 ﻿namespace PokemonReviewApp.Models;
 
-public class Country
+public class Country : BaseDomainModel
 {
-    public int Id { get; set; }
     public string Name { get; set; }
     public ICollection<Owner>? Owners { get; set; } = new List<Owner>() { };
 }

@@ -1,8 +1,7 @@
 ﻿namespace PokemonReviewApp.Models;
 
-public class Reviewer
+public class Reviewer : BaseDomainModel
 {
-    public int Id { get; set; }
     public string FirstName { get; set; }
     public string LastName { get; set; }
     ICollection<Review> Reviews { get; set; }
