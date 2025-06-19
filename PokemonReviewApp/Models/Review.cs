@@ -9,7 +9,7 @@ public class Review : BaseDomainModel
     public int PokemonId { get; set; }
     public Pokemon Pokemon { get; set; }
 
-    //(review - reviewer) many to one relationship
+    public int ReviewerId { get; set; }
     public Reviewer Reviewer { get; set; }
     public int Rating { get; set; }
 
