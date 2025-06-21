@@ -5,7 +5,7 @@ using PokemonReviewApp.Models;
 
 namespace PokemonReviewApp.Data
 {
-    public class DataContext: IdentityDbContext<ApplicationUser>
+    public class DataContext: DbContext
     {
         public DataContext(DbContextOptions<DataContext> options):base(options)
         {

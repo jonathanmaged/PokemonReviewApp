@@ -54,9 +54,6 @@ builder.Services.AddDbContext<DataContext>(options =>
 ); 
 builder.Services.AddTransient<Seed>();
 
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-    .AddEntityFrameworkStores<DataContext>();
-
 builder.Services.AddSwaggerGen(c =>
 {
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
