@@ -1,9 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using PokemonReviewApp.Models;
 
 namespace PokemonReviewApp.Data
 {
-    public class DataContext:DbContext
+    public class DataContext: IdentityDbContext<ApplicationUser>
     {
         public DataContext(DbContextOptions<DataContext> options):base(options)
         {
@@ -45,7 +47,7 @@ namespace PokemonReviewApp.Data
             .HasForeignKey(o => o.CategoryId)
             .OnDelete(DeleteBehavior.SetNull);
 
-
+            base.OnModelCreating(modelBuilder);
         }
     }
 }
