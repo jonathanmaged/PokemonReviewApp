@@ -15,52 +15,52 @@ using PokemonReviewApp.Repositories;
 
 namespace PokemonReviewApp.Services
 {
-    public class AuthService(IUnitOfWork unitOfWork,IConfiguration configuration ) : IAuthService
+    public class AuthService(IUnitOfWork unitOfWork,
+        UserManager<ApplicationUser> userManager,
+        IConfiguration configuration,
+        IMapper mapper) : IAuthService
     {
-        public async Task<ServiceResponse> RegisterAsync(UserDto request)
+        public async Task<ServiceResponse> RegisterAsync(UserDto userDto)
         {
-            var exits = await unitOfWork.UserRepository.IsUserExistAsync(request.UserName);
-            if(exits) return new ServiceResponse(409, "User Already Exists");
+            var user = await userManager.FindByEmailAsync(userDto.Email);
+            if(user is not null) return new ServiceResponse(409, "User Already Exists");
 
-            var user = new User();
-            var PasswordHash = new PasswordHasher<User>().HashPassword(user,request.Password);
-            user.UserName = request.UserName;
-            user.PasswordHash = PasswordHash;
-
-            unitOfWork.UserRepository.Add(user);
-            await unitOfWork.Save();
+            user = mapper.Map<ApplicationUser>(userDto);
+            var result = await userManager.CreateAsync(user,userDto.Password);
+            if (!result.Succeeded)
+                return new ServiceResponse(500, "error happen when registering user");
             return new ServiceResponse(201,"User created successfully",user);
 
         }
         public async Task<ServiceResponse> LoginAsync(UserDto request)
         {
-            var user = await unitOfWork.UserRepository.GetUserByUserName(request.UserName);
-            if (user == null) return new ServiceResponse(401,"unauthorized access");
+            var user = await userManager.FindByEmailAsync(request.Email);
+            if (user is null) return new ServiceResponse(401,"unauthorized access");
 
-            var result = new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, request.Password);
-            if(result == PasswordVerificationResult.Failed) return new ServiceResponse(401, "unauthorized access");
+            var authenticated= await userManager.CheckPasswordAsync(user,request.Password);
+            if(!authenticated) return new ServiceResponse(401, "unauthorized access");
 
             string token = GenerateToken(user);
             string refreshToken = await CreateAndSaveRefreshToken(user);
 
             return new ServiceResponse(statusCode:200,entity:new TokenPairDto{Token=token,RefreshToken= refreshToken });
         }
-        public async Task<ServiceResponse> ValidateRefreshToken(RefreshTokenRequestDto request) 
+        public async Task<ServiceResponse> ValidateRefreshToken(RefreshTokenRequestDto request)
         {
             var user = await unitOfWork.UserRepository.GetUserByUserNameAsNoTracking(request.UserName);
             if (user == null || user.RefreshToken != request.RefreshToken ||
-                user.RefreshTokenExpiryDate < DateTime.UtcNow) 
+                user.RefreshTokenExpiryDate < DateTime.UtcNow)
             {
-                return new ServiceResponse(401,"NotAuthorized");
+                return new ServiceResponse(401, "NotAuthorized");
             }
-            string newToken =  GenerateToken(user);
-            return new ServiceResponse(200,newToken);
+            string newToken = GenerateToken(user);
+            return new ServiceResponse(200, newToken);
         }
-        private async Task<string> CreateAndSaveRefreshToken(User user) 
+        private async Task<string> CreateAndSaveRefreshToken(ApplicationUser user) 
         { 
             var refreshToken = GenerateRefreshToken();
-            user.RefreshToken = refreshToken;
-            user.RefreshTokenExpiryDate = DateTime.UtcNow.AddDays(7);
+            //user.RefreshToken = refreshToken;
+            //user.RefreshTokenExpiryDate = DateTime.UtcNow.AddDays(7);
             await unitOfWork.Save();
             return refreshToken;
             
@@ -72,11 +72,11 @@ namespace PokemonReviewApp.Services
             rng.GetBytes(randomNumber);
             return Convert.ToBase64String(randomNumber);
         }
-        private string GenerateToken(User user)
+        private string GenerateToken(ApplicationUser user)
         {
             var claims = new List<Claim>
                 {
-                    new Claim(ClaimTypes.Name,user.UserName),
+                    new Claim(ClaimTypes.Name,user.UserName!),
                     new Claim(ClaimTypes.Role,user.Role)
                 };
 
