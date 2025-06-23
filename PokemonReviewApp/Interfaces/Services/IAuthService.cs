@@ -7,6 +7,8 @@ namespace PokemonReviewApp.Interfaces.Services
     {
         Task<ServiceResponse> RegisterAsync(UserDto request);
         Task<ServiceResponse> LoginAsync(UserDto request);
-        Task<ServiceResponse> ValidateRefreshToken(RefreshTokenRequestDto request);
+        Task<ServiceResponse> ValidateRefreshToken(RefreshTokenDto request);
+        Task<ServiceResponse> LogoutAsync(RefreshTokenDto request);
     }
+
 }

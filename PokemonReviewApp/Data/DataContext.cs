@@ -18,6 +18,7 @@ namespace PokemonReviewApp.Data
         public DbSet<PokemonOwner> PokemonsOwners { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<Reviewer> Reviewers { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -46,6 +47,7 @@ namespace PokemonReviewApp.Data
             .HasForeignKey(o => o.CategoryId)
             .OnDelete(DeleteBehavior.SetNull);
 
+            // check on entity state and handling created at and modified 
             base.OnModelCreating(modelBuilder);
         }
     }

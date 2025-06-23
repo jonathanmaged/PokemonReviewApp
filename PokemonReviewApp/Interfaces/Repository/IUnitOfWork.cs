@@ -6,6 +6,7 @@
         ICountryRepository CountryRepository { get; }
         IOwnerRepository OwnerRepository { get; }
         IPokemonRepository PokemonRepository { get; }
+        IRefreshTokenRepository RefreshTokenRepository { get; }
         Task<int> Save();
     }
 }
