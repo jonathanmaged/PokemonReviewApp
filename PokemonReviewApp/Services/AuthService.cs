@@ -7,11 +7,14 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using PokemonReviewApp.Data;
+using PokemonReviewApp.Dto.AuthDto;
 using PokemonReviewApp.Dto.UserDto;
 using PokemonReviewApp.Interfaces.Repository;
 using PokemonReviewApp.Interfaces.Services;
 using PokemonReviewApp.Models;
 using PokemonReviewApp.Repositories;
+using PokemonReviewApp.Result_Error;
+using PokemonReviewApp.Result_Error.Result;
 
 namespace PokemonReviewApp.Services
 {
@@ -21,48 +24,50 @@ namespace PokemonReviewApp.Services
         IMapper mapper) : IAuthService
     {
 
-        public async Task<ServiceResponse> RegisterAsync(UserDto userDto)
+        public async Task<ServiceResponse> RegisterAsync(RegisterDto registerDto)
         {
-            var user = await userManager.FindByEmailAsync(userDto.Email);
+            var user = await userManager.FindByEmailAsync(registerDto.Email);
             if(user is not null) return new ServiceResponse(409, "User Already Exists");
 
-            user = mapper.Map<ApplicationUser>(userDto);
-            var result = await userManager.CreateAsync(user,userDto.Password);
-            if (!result.Succeeded)
-                return new ServiceResponse(500, "enter valid Data");
+            user = mapper.Map<ApplicationUser>(registerDto);
+            var result = await userManager.CreateAsync(user,registerDto.Password);
+            if (!result.Succeeded) {
+                var errors = result.Errors.Select(e => e.Description);
+                return new ServiceResponse(statusCode: 400, entity: errors); 
+            }
             return new ServiceResponse(201,"User created successfully",user);
 
         }
 
-        public async Task<ServiceResponse> LoginAsync(UserDto request)
+        public async Task<Result<TokenPairDto>> LoginAsync(LoginDto request)
         {
             var user = await userManager.FindByEmailAsync(request.Email);
-            if (user is null) return new ServiceResponse(401,"unauthorized access");
+            if (user is null) return Result<TokenPairDto>.Faliure(AuthError.NotAuthorized);
 
             var authenticated= await userManager.CheckPasswordAsync(user,request.Password);
-            if(!authenticated) return new ServiceResponse(401, "unauthorized access");
+            if(!authenticated) return Result<TokenPairDto>.Faliure(AuthError.NotAuthorized);
 
             string token = await GenerateTokenAsync(user);
             string refreshToken = await CreateAndSaveRefreshToken(user);
 
-            return new ServiceResponse(statusCode:200,entity:new TokenPairDto{Token=token,RefreshToken= refreshToken });
+            return Result<TokenPairDto>.Success(new(token,refreshToken));
         }
 
-        public async Task<ServiceResponse> ValidateRefreshToken(RefreshTokenDto request)
+        public async Task<Result<TokenPairDto>> ValidateRefreshToken(RefreshTokenDto request)
         {
             var refreshToken = await unitOfWork.RefreshTokenRepository.GetRefreshTokenAsync(request.RefreshToken);
-            if(refreshToken is null || !refreshToken.IsActive) return new ServiceResponse(401, "NotAuthorized");
+            if(refreshToken is null || !refreshToken.IsActive) return Result<TokenPairDto>.Faliure(AuthError.NotAuthorized);
 
             refreshToken.IsUsed = true;
             string newToken = await GenerateTokenAsync(refreshToken.User);
             string newRefreshToken = await CreateAndSaveRefreshToken(refreshToken.User);
 
-            return new ServiceResponse(statusCode: 200, entity: new TokenPairDto { Token = newToken, RefreshToken = newRefreshToken });
+            return Result<TokenPairDto>.Success(new(newToken, newRefreshToken));
             
         }
-        public async Task<ServiceResponse> LogoutAsync(RefreshTokenDto request)
+        public async Task<ServiceResponse> LogoutAsync(string publicId)
         {
-            var refreshToken = await unitOfWork.RefreshTokenRepository.GetRefreshTokenAsync(request.RefreshToken);
+            var refreshToken = await unitOfWork.RefreshTokenRepository.GetByPublicIdAsync(publicId);
             if (refreshToken is null || !refreshToken.IsActive) return new ServiceResponse(401, "NotAuthorized");
 
             refreshToken.IsRevoked = true;
@@ -100,7 +105,8 @@ namespace PokemonReviewApp.Services
             var roles = await userManager.GetRolesAsync(user);
             var claims = new List<Claim>
                 {
-                    new Claim(ClaimTypes.Name,user.UserName!),
+                    new Claim(ClaimTypes.Name,user.UserName),
+                    new Claim(ClaimTypes.NameIdentifier,user.PublicId.ToString())
                 };
             claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
 

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using PokemonReviewApp.Dto.AuthDto;
 using PokemonReviewApp.Dto.CreateDto;
 using PokemonReviewApp.Dto.GetDto;
 using PokemonReviewApp.Dto.UserDto;
@@ -18,7 +19,7 @@ namespace PokemonReviewApp.Helper
             CreateMap<Pokemon, CreatePokemonDto>().ReverseMap();
             CreateMap<Category, CreateCategoryDto>().ReverseMap();
             CreateMap<Country, CreateCountryDto>().ReverseMap();
-            CreateMap<ApplicationUser, UserDto>().ReverseMap();
+            CreateMap<ApplicationUser, RegisterDto>().ReverseMap();
         }
     }
 }

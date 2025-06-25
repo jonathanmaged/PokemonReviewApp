@@ -8,9 +8,9 @@ using PokemonReviewApp.Services;
 namespace PokemonReviewApp.Controllers
 {
     
+    //[Authorize]
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class CategoriesController : Controller
     {
 
@@ -20,6 +20,7 @@ namespace PokemonReviewApp.Controllers
         {
             this.categoryService = categoryService;
         }
+        
         
         [HttpGet]
         public async Task<IActionResult> GetCategories()

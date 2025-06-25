@@ -2,11 +2,13 @@
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using PokemonReviewApp.Dto.AuthDto;
 using PokemonReviewApp.Dto.UserDto;
 using PokemonReviewApp.Interfaces.Services;
 using PokemonReviewApp.Models;
@@ -20,21 +22,21 @@ namespace PokemonReviewApp.Controllers
     {
         // Register
         [HttpPost("register")]
-        public async Task<IActionResult> Register(UserDto request)
+        public async Task<IActionResult> Register(RegisterDto request)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
             var response = await authService.RegisterAsync(request);
+            if (response.StatusCode == 400)
+                return BadRequest(new { response.Entity });
             return StatusCode(response.StatusCode, response.StatusMessage);
         }
 
         //Login
         [HttpPost("login")]
-        public async Task<IActionResult> Login(UserDto request)
+        public async Task<IActionResult> Login(LoginDto request)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            var response = await authService.LoginAsync(request);
-            var tokens = (TokenPairDto)response.Entity!;
-            return StatusCode(response.StatusCode, new { tokens.Token, tokens.RefreshToken });
+            var result = await authService.LoginAsync(request);
+            if (result.IsSuccess) return Ok(result.Entity);
+            return Unauthorized(result.Error.Message); 
 
         }
 
@@ -42,17 +44,19 @@ namespace PokemonReviewApp.Controllers
         [HttpPost("refresh-Token")]
         public async Task<IActionResult> ValidateRefreshToken(RefreshTokenDto request)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            var response = await authService.ValidateRefreshToken(request);
-            return StatusCode(response.StatusCode, response.StatusMessage);
+            var result = await authService.ValidateRefreshToken(request);
+            if (result.IsSuccess) return Ok(result.Entity);
+            return Unauthorized(result.Error.Message);
         }
 
         //Logout
+        [Authorize]
         [HttpPost("logout")]
-        public async Task<IActionResult> Logout(RefreshTokenDto request)
+        public async Task<IActionResult> Logout()
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            var response = await authService.LogoutAsync(request);
+            var publicUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var response = await authService.LogoutAsync(publicUserId);
             return StatusCode(response.StatusCode, response.StatusMessage);
         }
         
