@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -12,6 +13,7 @@ using PokemonReviewApp.Dto.AuthDto;
 using PokemonReviewApp.Dto.UserDto;
 using PokemonReviewApp.Interfaces.Services;
 using PokemonReviewApp.Models;
+using PokemonReviewApp.Result_Error.Result;
 
 namespace PokemonReviewApp.Controllers
 {
@@ -24,29 +26,41 @@ namespace PokemonReviewApp.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterDto request)
         {
-            var response = await authService.RegisterAsync(request);
-            if (response.StatusCode == 400)
-                return BadRequest(new { response.Entity });
-            return StatusCode(response.StatusCode, response.StatusMessage);
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            var result = await authService.RegisterAsync(request);
+            if (result.IsSuccess) return Created();
+            var error = result.Error;
+            return StatusCode(error.StatusCode, error.ErrorList);
         }
 
         //Login
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginDto request)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
             var result = await authService.LoginAsync(request);
-            if (result.IsSuccess) return Ok(result.Entity);
-            return Unauthorized(result.Error.Message); 
+            if (!result.IsSuccess) return Unauthorized(result.Error?.Message);
 
+            if(result is Result<TokenPairDto> typed)
+                return Ok(typed.SuccessResponse?.Entity);
+
+            return StatusCode(500);
         }
 
         //Refresh Token 
         [HttpPost("refresh-Token")]
         public async Task<IActionResult> ValidateRefreshToken(RefreshTokenDto request)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
             var result = await authService.ValidateRefreshToken(request);
-            if (result.IsSuccess) return Ok(result.Entity);
-            return Unauthorized(result.Error.Message);
+
+            if (!result.IsSuccess) return Unauthorized(result.Error?.Message);
+
+            if(result is Result<TokenPairDto> res)
+                return Ok(res.SuccessResponse?.Entity);
+
+            return StatusCode(500);
+
         }
 
         //Logout
@@ -54,10 +68,9 @@ namespace PokemonReviewApp.Controllers
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
             var publicUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var response = await authService.LogoutAsync(publicUserId);
-            return StatusCode(response.StatusCode, response.StatusMessage);
+            var result = (Result)await authService.LogoutAsync(publicUserId);
+            return Ok(result.SuccessResponse?.Message);
         }
         
 

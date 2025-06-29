@@ -15,7 +15,7 @@ namespace PokemonReviewApp.Repositories
                 return null;
             return await context.RefreshTokens
                 .Include(rt => rt.User)
-                .FirstOrDefaultAsync(rt => rt.User.PublicId == publicGuid);
+                .FirstOrDefaultAsync(rt => rt.User.PublicId == publicGuid && rt.IsActive == true);
         }
 
         public async Task<RefreshToken?> GetRefreshTokenAsync(string token)

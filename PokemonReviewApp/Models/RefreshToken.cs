@@ -1,4 +1,6 @@
-﻿namespace PokemonReviewApp.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace PokemonReviewApp.Models
 {
     public class RefreshToken:BaseDomainModel
     {
@@ -7,9 +9,10 @@
         public DateTime Expires { get; set; }
         public bool IsUsed { get; set; } = false;
         public bool IsRevoked { get; set; } = false;
+        public bool IsActive { get; set; } = true;
 
         public bool IsExpired => DateTime.UtcNow >= Expires;
-        public bool IsActive => !IsUsed && !IsRevoked && !IsExpired;
+        //public bool IsActive => !IsUsed && !IsRevoked && !IsExpired;
 
         public string UserId { get; set; }
         public ApplicationUser User { get; set; }

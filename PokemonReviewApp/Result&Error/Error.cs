@@ -1,7 +1,10 @@
 ﻿namespace PokemonReviewApp.Result_Error
 {
-    public sealed record NewError(int StatusCode, string Message)
+    public class Error (int statusCode, string message = "", IEnumerable<string>? errorList = null) 
+        : Base(statusCode,message)
     {
-        public static readonly NewError None = new(200, string.Empty); 
+        public IEnumerable<string> ErrorList { get; } = errorList ?? Enumerable.Empty<string>();
+
+
     } 
 }

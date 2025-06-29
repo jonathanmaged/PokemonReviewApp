@@ -36,16 +36,24 @@ namespace PokemonReviewApp.Data
                 .WithMany(o => o.OwnerPokemons )
                 .HasForeignKey(po => po.OwnerId)
                 .OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.Entity<Owner>()
                 .HasOne(o => o.Country)
                 .WithMany(c => c.Owners)
                 .HasForeignKey(o => o.CountryId)
                 .OnDelete(DeleteBehavior.SetNull);
+
             modelBuilder.Entity<Pokemon>()
             .HasOne(o => o.Category)
             .WithMany(c => c.Pokemons)
             .HasForeignKey(o => o.CategoryId)
             .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<RefreshToken>()
+                .Property(rt => rt.IsActive)
+                .HasComputedColumnSql(
+                "CAST(Case When [IsUsed] = 0 And [IsRevoked] = 0 And [Expires] > GETUTCDATE() THEN 1 ELSE 0 END AS bit)"
+                , stored: false);
 
             // check on entity state and handling created at and modified 
             base.OnModelCreating(modelBuilder);

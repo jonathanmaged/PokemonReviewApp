@@ -1,20 +1,42 @@
-﻿namespace PokemonReviewApp.Result_Error.Result
-{
-    public class Result<T>
-    {
-        public bool IsSuccess { get; set; }
-        public bool IsFaliure => !IsSuccess;
-        public T? Entity { get; set; }
-        public NewError Error { get; set; }
+﻿using IResult = PokemonReviewApp.Interfaces.IResult;
 
-        private Result(bool isSuccess,NewError error,T? entity = default)
+namespace PokemonReviewApp.Result_Error.Result
+{
+    public abstract class ResultBase : IResult
+    {
+        public bool IsSuccess { get; init; }
+        public Error? Error{ get; init; }
+        protected ResultBase(bool isSuccess, Error? error = null)
         {
             IsSuccess = isSuccess;
             Error = error;
-            Entity = entity;
         }
-        public static Result<T> Success(T entity) => new Result<T>(true,NewError.None,entity);
-        public static Result<T> Faliure(NewError error) => new Result<T>(false,error);
+    }
+
+    //to handle normal success
+    public class Result: ResultBase 
+    {
+        public Success? SuccessResponse { get; init; }
+        private Result(bool isSuccess, Success? success = null, Error? error = null  )
+            : base(isSuccess,error)
+        {
+            SuccessResponse = success;
+        }
+        public static Result Success(Success success) => new(true, success);
+        public static Result Faliure(Error error) => new(false, error: error);
+    }
+
+    //to handle genric success 
+    public class Result<T> : ResultBase
+    {
+        public Success<T>? SuccessResponse { get; init; }
+        private Result(bool isSuccess, Success<T>? success = null, Error? error = null)
+            : base(isSuccess, error)
+        {
+            SuccessResponse = success;
+        }
+        public static Result<T> Success(Success<T> success) => new(true, success);
+        public static Result<T> Faliure(Error error) => new(false, error: error);
 
     }
 }

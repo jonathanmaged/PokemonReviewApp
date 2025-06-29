@@ -7,10 +7,10 @@ namespace PokemonReviewApp.Interfaces.Services
 {
     public interface IAuthService
     {
-        Task<ServiceResponse> RegisterAsync(RegisterDto request);
-        Task<Result<TokenPairDto>> LoginAsync(LoginDto request);
-        Task<Result<TokenPairDto>> ValidateRefreshToken(RefreshTokenDto request);
-        Task<ServiceResponse> LogoutAsync(string publicId);
+        Task<Result> RegisterAsync(RegisterDto request);
+        Task<IResult> LoginAsync(LoginDto request);
+        Task<IResult> ValidateRefreshToken(RefreshTokenDto request);
+        Task<IResult> LogoutAsync(string publicId);
     }
 
 }

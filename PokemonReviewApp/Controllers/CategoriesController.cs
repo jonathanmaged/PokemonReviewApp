@@ -8,7 +8,7 @@ using PokemonReviewApp.Services;
 namespace PokemonReviewApp.Controllers
 {
     
-    //[Authorize]
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class CategoriesController : Controller
